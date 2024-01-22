@@ -73,9 +73,7 @@ struct decon_readback_attribute {
 struct vsync_applied_time_data {
     uint32_t config;
     uint64_t time;
-#ifndef USE_NOT_RESERVED_FIELD
     uint32_t reserved[4];
-#endif
 };
 
 #define MAX_EDID_BLOCK 4
