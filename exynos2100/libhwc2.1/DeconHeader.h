@@ -161,7 +161,8 @@ struct decon_win_config {
 };
 struct decon_win_config_extra {
   int remained_frames;
-  u32 reserved[7];
+  u32 config_id;
+  u32 reserved[6];
 };
 struct decon_win_config_data_old {
   int present_fence;
