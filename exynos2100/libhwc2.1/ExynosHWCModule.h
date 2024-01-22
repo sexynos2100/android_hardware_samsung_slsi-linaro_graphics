@@ -33,6 +33,7 @@
 #define PSR_DEV_NAME        "19f00000.decon_0/psr_info"
 #define PSR_DEV_NAME_S      "19f01000.decon_1/psr_info"
 #define USE_DPU_SET_CONFIG
+#define USE_DPU_SET_CONFIG_VRR_WORKAROUND
 
 #define HIBER_EXIT_NODE_NAME    "/sys/devices/platform/19f00000.drmdecon/hiber_exit"
 /* When use Brigntess, enable here */
