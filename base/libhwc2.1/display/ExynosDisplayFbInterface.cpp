@@ -174,7 +174,9 @@ int32_t ExynosDisplayFbInterface::setActiveConfig(hwc2_config_t config,
     win_config[DECON_WIN_UPDATE_IDX].dst.f_h = displayConfig.height;
     win_config[DECON_WIN_UPDATE_IDX].plane_alpha = (int)(1000000000 / displayConfig.vsyncPeriod);
     win_data.fps = (int)(1000000000 / displayConfig.vsyncPeriod);
-
+#ifdef USE_DPU_SET_CONFIG_VRR_WORKAROUND
+    win_data.extra.config_id = config; 
+#endif
     HDEBUGLOGD(eDebugDisplayConfig, "(win_config %d) : %dx%d, fps:%d", config,
                win_config[DECON_WIN_UPDATE_IDX].dst.f_w,
                win_config[DECON_WIN_UPDATE_IDX].dst.f_h, win_data.fps);
