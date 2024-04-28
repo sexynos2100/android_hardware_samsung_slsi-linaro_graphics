@@ -259,6 +259,8 @@ struct DisplayControl {
     bool readbackSupport = false;
     bool skipStaticLayers = true;
     bool skipM2mProcessing = true;
+    /** Enable multi-thread present **/
+    bool multiThreadedPresent = false;
 };
 
 typedef struct hiberState {
@@ -561,6 +563,7 @@ class ExynosDisplay : public ExynosVsyncHandler {
     int32_t addClientCompositionLayer(uint32_t layerIndex,
                                       uint32_t *isExynosCompositionChanged = NULL);
     int32_t removeClientCompositionLayer(uint32_t layerIndex);
+    bool hasClientComposition();
     int32_t handleSandwitchedExynosCompositionLayer(
         std::vector<int32_t> &highPriLayers, float totalUsedCapa,
         bool &invalidFlag, int32_t &changeFlag);
@@ -1200,6 +1203,8 @@ class ExynosDisplay : public ExynosVsyncHandler {
     hdrInterface *createHdrInterfaceInstance();
     hdr10pMetaInterface *createHdr10PMetaInterfaceInstance();
 
+    virtual int32_t getDisplayMultiThreadedPresentSupport(bool& outSupport);
+
 #ifdef USE_DQE_INTERFACE
     bool needDqeSetting();
     void setDqeCoef(int fd);
@@ -1275,11 +1280,11 @@ class LayerDumpManager {
     };
 
   private:
-    int32_t mDumpFrameIndex GUARDED_BY(mMutex);
-    int32_t mDumpMaxIndex GUARDED_BY(mMutex);
+    int32_t mDumpFrameIndex; // GUARDED_BY(mMutex)
+    int32_t mDumpMaxIndex; // GUARDED_BY(mMutex)
     ExynosDisplay *mDisplay;
     std::mutex mMutex;
-    ThreadState mState GUARDED_BY(mMutex) = ThreadState::STOPPED;
+    ThreadState mState = ThreadState::STOPPED; // GUARDED_BY(mMutex)
     layerDumpFrameInfo mLayerDumpInfo[LAYER_DUMP_FRAME_CNT_MAX];
     std::thread mThread;
 };

@@ -2384,7 +2384,7 @@ int32_t ExynosDisplay::getDisplayRequests(
         return HWC2_ERROR_NONE;
     }
 
-    auto handle_err = [=, &errString]() -> int32_t {
+    auto handle_err = [=, this, &errString]() -> int32_t {
         printDebugInfos(errString);
         mDisplayInterface->setForcePanic();
         return HWC_HAL_ERROR_INVAL;
@@ -3825,7 +3825,7 @@ int32_t ExynosDisplay::startPostProcessing() {
     int ret = NO_ERROR;
     String8 errString;
 
-    auto handle_err = [=, &errString]() -> int32_t {
+    auto handle_err = [=, this, &errString]() -> int32_t {
         printDebugInfos(errString);
         closeFences();
         mDisplayInterface->setForcePanic();
@@ -3967,7 +3967,7 @@ int32_t ExynosDisplay::setCompositionTargetExynosImage(uint32_t targetType, exyn
     if ((targetType <= COMPOSITION_NONE) || (targetType >= COMPOSITION_MAX))
         return -EINVAL;
 
-    auto setImgageFormCompositionInfo = [=](
+    auto setImgageFormCompositionInfo = [=, this](
                                             ExynosCompositionInfo &compositionInfo, exynos_image *src_img,
                                             exynos_image *dst_img) {
         if (compositionInfo.mTargetBuffer != NULL) {
@@ -4207,6 +4207,10 @@ int32_t ExynosDisplay::removeClientCompositionLayer(uint32_t layerIndex) {
                  mClientCompositionInfo.mFirstIndex, mClientCompositionInfo.mLastIndex);
 
     return ret;
+}
+
+bool ExynosDisplay::hasClientComposition() {
+    return mClientCompositionInfo.mHasCompositionLayer;
 }
 
 int32_t ExynosDisplay::handleSandwitchedExynosCompositionLayer(
@@ -5266,7 +5270,7 @@ int32_t ExynosDisplay::updateColorConversionInfo() {
     mHdrCoefInterface->initHdrCoefBuildup(HDR_HW_DPU);
     mHdrCoefInterface->setHDRlayer(hasHdrLayer);
 
-    auto setHdrCoefLayerInfo = [=](ExynosMPP *otfMPP, exynos_image &image,
+    auto setHdrCoefLayerInfo = [=, this](ExynosMPP *otfMPP, exynos_image &image,
                                    enum RenderSource renderSource) -> int32_t {
         /* If getHDRException is true, setLayerInfo is bypassed. */
         HdrLayerInfo hdrLayerInfo;
@@ -5719,4 +5723,9 @@ hdr10pMetaInterface *ExynosDisplay::createHdr10PMetaInterfaceInstance() {
 #else
     return nullptr;
 #endif
+}
+
+int32_t ExynosDisplay::getDisplayMultiThreadedPresentSupport(bool &outSupport) {
+    outSupport = mDisplayControl.multiThreadedPresent;
+    return NO_ERROR;
 }

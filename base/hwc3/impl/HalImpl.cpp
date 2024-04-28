@@ -439,6 +439,11 @@ int32_t HalImpl::getHdrCapabilities(int64_t display, HdrCapabilities* caps) {
     return HWC2_ERROR_NONE;
 }
 
+int32_t HalImpl::getOverlaySupport([[maybe_unused]] OverlayProperties* caps) {
+    // TODO(b/245570131): implement
+    return HWC2_ERROR_UNSUPPORTED;
+}
+
 int32_t HalImpl::getMaxVirtualDisplayCount(int32_t* count) {
     uint32_t hwcCount = mDevice->getMaxVirtualDisplayCount();
     h2a::translate(hwcCount, *count);
@@ -597,6 +602,14 @@ int32_t HalImpl::getPreferredBootDisplayConfig(int64_t display, int32_t* config)
     return halDisplay->getPreferredBootDisplayConfig(config);
 }
 
+int32_t HalImpl::getHdrConversionCapabilities(std::vector<common::HdrConversionCapability>*) {
+    return HWC2_ERROR_UNSUPPORTED;
+}
+
+int32_t HalImpl::setHdrConversionStrategy(const common::HdrConversionStrategy&, common::Hdr*) {
+    return HWC2_ERROR_UNSUPPORTED;
+}
+
 int32_t HalImpl::setAutoLowLatencyMode(int64_t display, bool on) {
     ExynosDisplay* halDisplay;
     RET_IF_ERR(getHalDisplay(display, halDisplay));
@@ -622,6 +635,15 @@ int32_t HalImpl::setClientTarget(int64_t display, buffer_handle_t target,
     UNUSED(region);
 
     return mDevice->setClientTarget(halDisplay, target, hwcFence, hwcDataspace);
+}
+
+int32_t HalImpl::getHasClientComposition(int64_t display, bool& outHasClientComp) {
+    ExynosDisplay* halDisplay;
+    RET_IF_ERR(getHalDisplay(display, halDisplay));
+
+    outHasClientComp = halDisplay->hasClientComposition();
+
+    return HWC2_ERROR_NONE;
 }
 
 int32_t HalImpl::setColorMode(int64_t display, ColorMode mode, RenderIntent intent) {
@@ -962,13 +984,26 @@ int32_t HalImpl::validateDisplay(int64_t display, std::vector<int64_t>* outChang
         h2a::translate(hwcProperty, *outClientTargetProperty);
     } // else ignore this error
 
-    return HWC2_ERROR_NONE;
+    return err;
 }
 
 int HalImpl::setExpectedPresentTime(
         int64_t __unused display, const std::optional<ClockMonotonicTimestamp> __unused expectedPresentTime) {
 
     return HWC2_ERROR_UNSUPPORTED;
+}
+
+int32_t HalImpl::getDisplayMultiThreadedPresentSupport(const int64_t& display, bool& outSupport) {
+    ExynosDisplay* halDisplay;
+    RET_IF_ERR(getHalDisplay(display, halDisplay));
+
+    return halDisplay->getDisplayMultiThreadedPresentSupport(outSupport);
+}
+
+int32_t HalImpl::setRefreshRateChangedCallbackDebugEnabled(int64_t /* display*/,
+                                                           bool /* enabled */) {
+    // TODO(b/267825022) Add implementation for the HAL
+    return EX_UNSUPPORTED_OPERATION;
 }
 
 } // namespace aidl::android::hardware::graphics::composer3::impl

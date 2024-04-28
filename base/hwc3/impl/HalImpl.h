@@ -70,6 +70,7 @@ class HalImpl : public IComposerHal {
     int32_t getDisplayPhysicalOrientation(int64_t display, common::Transform* orientation) override;
     int32_t getDozeSupport(int64_t display, bool* support) override;
     int32_t getHdrCapabilities(int64_t display, HdrCapabilities* caps) override;
+    int32_t getOverlaySupport(OverlayProperties* caps) override;
     int32_t getMaxVirtualDisplayCount(int32_t* count) override;
     int32_t getPerFrameMetadataKeys(int64_t display,
                                     std::vector<PerFrameMetadataKey>* keys) override;
@@ -91,10 +92,13 @@ class HalImpl : public IComposerHal {
     int32_t setBootDisplayConfig(int64_t display, int32_t config) override;
     int32_t clearBootDisplayConfig(int64_t display) override;
     int32_t getPreferredBootDisplayConfig(int64_t display, int32_t* config) override;
+    int32_t getHdrConversionCapabilities(std::vector<common::HdrConversionCapability>*) override;
+    int32_t setHdrConversionStrategy(const common::HdrConversionStrategy&, common::Hdr*) override;
     int32_t setAutoLowLatencyMode(int64_t display, bool on) override;
     int32_t setClientTarget(int64_t display, buffer_handle_t target,
                             const ndk::ScopedFileDescriptor& fence, common::Dataspace dataspace,
                             const std::vector<common::Rect>& damage) override;
+    int32_t getHasClientComposition(int64_t display, bool& outHasClientComp) override;
     int32_t setColorMode(int64_t display, ColorMode mode, RenderIntent intent) override;
     int32_t setColorTransform(int64_t display, const std::vector<float>& matrix) override;
     int32_t setContentType(int64_t display, ContentType contentType) override;
@@ -133,6 +137,8 @@ class HalImpl : public IComposerHal {
     int32_t setReadbackBuffer(int64_t display, buffer_handle_t buffer,
                               const ndk::ScopedFileDescriptor& releaseFence) override;
     int32_t setVsyncEnabled(int64_t display, bool enabled) override;
+    int32_t getDisplayMultiThreadedPresentSupport(const int64_t& display,
+                                                  bool& outSupport) override;
     int32_t setIdleTimerEnabled(int64_t display, int32_t timeout) override;
     int32_t validateDisplay(int64_t display, std::vector<int64_t>* outChangedLayers,
                             std::vector<Composition>* outCompositionTypes,
@@ -145,6 +151,8 @@ class HalImpl : public IComposerHal {
             const std::optional<ClockMonotonicTimestamp> expectedPresentTime) override;
 
     EventCallback* getEventCallback() { return mEventCallback; }
+    int32_t setRefreshRateChangedCallbackDebugEnabled(int64_t /* display */,
+                                                      bool /* enabled */) override;
 
 private:
     void initCaps();

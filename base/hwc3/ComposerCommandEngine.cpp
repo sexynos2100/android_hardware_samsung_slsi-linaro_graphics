@@ -15,6 +15,9 @@
  */
 
 #include "ComposerCommandEngine.h"
+
+#include <hardware/hwcomposer2.h>
+
 #include "Util.h"
 
 /// The command engine interface is not 'pure' aidl. Conversion to aidl
@@ -53,9 +56,9 @@ namespace aidl::android::hardware::graphics::composer3::impl {
         }                                                                         \
     } while (0)
 
-bool ComposerCommandEngine::init() {
+int32_t ComposerCommandEngine::init() {
     mWriter = std::make_unique<ComposerServiceWriter>();
-    return (mWriter != nullptr);
+    return (mWriter != nullptr) ? ::android::NO_ERROR : ::android::NO_MEMORY;
 }
 
 int32_t ComposerCommandEngine::execute(const std::vector<DisplayCommand>& commands,
@@ -121,7 +124,7 @@ int32_t ComposerCommandEngine::executeValidateDisplayInternal(int64_t display) {
                                      &displayRequestMask, &requestedLayers, &requestMasks,
                                      &clientTargetProperty);
     mResources->setDisplayMustValidateState(display, false);
-    if (!err) {
+    if (err == HWC2_ERROR_NONE || err == HWC2_ERROR_HAS_CHANGES) {
         mWriter->setChangedCompositionTypes(display, changedLayers, compositionTypes);
         mWriter->setDisplayRequests(display, displayRequestMask, requestedLayers, requestMasks);
     } else {
@@ -206,22 +209,32 @@ void ComposerCommandEngine::executeSetDisplayBrightness(uint64_t display,
 void ComposerCommandEngine::executePresentOrValidateDisplay(
         int64_t display, const std::optional<ClockMonotonicTimestamp> expectedPresentTime) {
     executeSetExpectedPresentTimeInternal(display, expectedPresentTime);
-
-    int err;
     // First try to Present as is.
-    if (mHal->hasCapability(Capability::SKIP_VALIDATE)) {
-        err = mResources->mustValidateDisplay(display) ? IComposerClient::EX_NOT_VALIDATED
-                                                       : executePresentDisplay(display);
-        if (!err) {
-            mWriter->setPresentOrValidateResult(display, PresentOrValidate::Result::Presented);
-            return;
-        }
+    auto presentErr = mResources->mustValidateDisplay(display) ? IComposerClient::EX_NOT_VALIDATED
+                                                               : executePresentDisplay(display);
+    if (!presentErr) {
+        mWriter->setPresentOrValidateResult(display, PresentOrValidate::Result::Presented);
+        return;
     }
 
     // Fallback to validate
-    err = executeValidateDisplayInternal(display);
-    if (!err) {
+    auto validateErr = executeValidateDisplayInternal(display);
+    if (validateErr != HWC2_ERROR_NONE && validateErr != HWC2_ERROR_HAS_CHANGES) return;
+
+    bool hasClientComp = false;
+    bool cannotPresentDirectly = (validateErr == HWC2_ERROR_HAS_CHANGES) ||
+            (mHal->getHasClientComposition(display, hasClientComp) == HWC2_ERROR_NONE &&
+             hasClientComp);
+    if (cannotPresentDirectly) {
         mWriter->setPresentOrValidateResult(display, PresentOrValidate::Result::Validated);
+        return;
+    }
+
+    // Try to call present again
+    executeAcceptDisplayChanges(display);
+    presentErr = executePresentDisplay(display);
+    if (!presentErr) {
+        mWriter->setPresentOrValidateResult(display, PresentOrValidate::Result::Presented);
     }
 }
 
