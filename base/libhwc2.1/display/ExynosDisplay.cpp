@@ -5724,8 +5724,3 @@ hdr10pMetaInterface *ExynosDisplay::createHdr10PMetaInterfaceInstance() {
     return nullptr;
 #endif
 }
-
-int32_t ExynosDisplay::getDisplayMultiThreadedPresentSupport(bool &outSupport) {
-    outSupport = mDisplayControl.multiThreadedPresent;
-    return NO_ERROR;
-}
