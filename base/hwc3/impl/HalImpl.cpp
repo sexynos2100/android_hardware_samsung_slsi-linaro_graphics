@@ -993,13 +993,6 @@ int HalImpl::setExpectedPresentTime(
     return HWC2_ERROR_UNSUPPORTED;
 }
 
-int32_t HalImpl::getDisplayMultiThreadedPresentSupport(const int64_t& display, bool& outSupport) {
-    ExynosDisplay* halDisplay;
-    RET_IF_ERR(getHalDisplay(display, halDisplay));
-
-    return halDisplay->getDisplayMultiThreadedPresentSupport(outSupport);
-}
-
 int32_t HalImpl::setRefreshRateChangedCallbackDebugEnabled(int64_t /* display*/,
                                                            bool /* enabled */) {
     // TODO(b/267825022) Add implementation for the HAL
