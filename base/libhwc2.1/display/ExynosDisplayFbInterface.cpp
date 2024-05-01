@@ -159,8 +159,7 @@ int32_t ExynosDisplayFbInterface::getDPUConfig(hwc2_config_t *config) {
     return ret;
 }
 
-int32_t ExynosDisplayFbInterface::setActiveConfig(ExynosDisplay &exynosDisplay,
-                                                  hwc2_config_t config,
+int32_t ExynosDisplayFbInterface::setActiveConfig(hwc2_config_t config,
                                                   displayConfigs_t &displayConfig) {
     int ret = 0;
 #if defined(USE_DPU_SET_CONFIG) || defined(USES_SET_DISPLAY_MODE_IOCTL)
@@ -186,8 +185,6 @@ int32_t ExynosDisplayFbInterface::setActiveConfig(ExynosDisplay &exynosDisplay,
 
     if (ret < 0) {
         ALOGE("%s S3CFB_WIN_CONFIG failed errno : %d, ret: %d", __func__, errno, ret);
-    } else {
-        exynosDisplay.invalidate();
     }
 #elif defined(USES_SET_DISPLAY_MODE_IOCTL)
     struct decon_display_mode display_mode;
@@ -221,13 +218,13 @@ int32_t ExynosDisplayFbInterface::setActiveConfig(ExynosDisplay &exynosDisplay,
     return ret;
 }
 
-int32_t ExynosDisplayFbInterface::setActiveConfigWithConstraints(ExynosDisplay &exynosDisplay, hwc2_config_t desiredConfig,
+int32_t ExynosDisplayFbInterface::setActiveConfigWithConstraints(hwc2_config_t desiredConfig,
                                                                  displayConfigs_t &displayConfig, bool test) {
     if (test) {
         HDEBUGLOGD(eDebugDisplayConfig, "Check only possbility");
         return NO_ERROR;
     }
-    return setActiveConfig(exynosDisplay, desiredConfig, displayConfig);
+    return setActiveConfig(desiredConfig, displayConfig);
 }
 
 int32_t ExynosDisplayFbInterface::getDisplayVsyncPeriod(
