@@ -183,7 +183,7 @@ ExynosPrimaryDisplay::~ExynosPrimaryDisplay() {
 int32_t ExynosPrimaryDisplay::setPowerMode(int32_t mode,
                                            uint64_t &geometryFlag) {
     if (mode == static_cast<int32_t>(mPowerModeState)) {
-        ALOGI("Skip power mode transition due to the same power state.");
+        ALOGI("Skip power mode transition due to the same power state.\ncurrent power mode: %d, requested mode: %d ",static_cast<int32_t>(mPowerModeState), mode);
         return HWC2_ERROR_NONE;
     }
 
